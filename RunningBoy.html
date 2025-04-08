@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Running Boy with Rain and Village</title>
+    <style>
+        canvas {
+            background-color: black;
+            display: block;
+            margin: auto;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="myCanvas" width="400" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById("myCanvas");
+        const ctx = canvas.getContext("2d");
+
+        const backgroundImage = new Image();
+        backgroundImage.src = "village2.jpg"; // Make sure it's in the same directory
+
+
+        const raindrops = [];
+        let frame = 0;
+        // **Rain**
+        function createRain(num) {
+            for (let i = 0; i < num; i++) {
+                raindrops.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    speed: 2 + Math.random() * 3,
+                    length: 10 + Math.random() * 10
+                });
+            }
+        }
+
+        function drawRain() {
+            ctx.strokeStyle = "cyan";
+            ctx.lineWidth = 2;
+            for (let drop of raindrops) {
+                ctx.beginPath();
+                ctx.moveTo(drop.x, drop.y);
+                ctx.lineTo(drop.x, drop.y + drop.length);
+                ctx.stroke();
+                drop.y += drop.speed;
+                if (drop.y > canvas.height) {
+                    drop.y = 0;
+                    drop.x = Math.random() * canvas.width;
+                }
+            }
+        }
+
+        function drawBackground() {
+            if (backgroundImage.complete) {
+                ctx.drawImage(backgroundImage, 0, 0, canvas.width, canvas.height);
+            }
+        }
+        // **Sky and Moon**
+        function drawSky() {
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, "#004488"); 
+            gradient.addColorStop(1, "#222"); 
+
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawMoon() {
+            const moonX = canvas.width - 80;
+            const moonY = 80;
+            const moonRadius = 30;
+
+            // Glow effect
+            const glowGradient = ctx.createRadialGradient(moonX, moonY, 10, moonX, moonY, 50);
+            glowGradient.addColorStop(0, "rgba(255, 255, 200, 0.8)");
+            glowGradient.addColorStop(1, "rgba(255, 255, 200, 0)");
+
+            ctx.fillStyle = glowGradient;
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, 50, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Moon
+            ctx.fillStyle = "#eeeecc";
+            ctx.beginPath();
+            ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // **Buildings**
+        const backgroundBuildings = [
+            { x: 30, y: 180, width: 35, height: 50 },
+            { x: 80, y: 190, width: 45, height: 60 },
+            { x: 130, y: 170, width: 40, height: 55 }
+        ];
+
+        const foregroundBuildings = [
+            { x: 50, y: 220, width: 40, height: 60 },
+            { x: 100, y: 230, width: 50, height: 70 },
+            { x: 150, y: 210, width: 45, height: 65 }
+        ];
+
+        function drawBuildings(buildings, color, roofColor, isForeground) {
+            for (let building of buildings) {
+                ctx.fillStyle = color;
+                ctx.fillRect(building.x, building.y, building.width, building.height);
+
+                ctx.fillStyle = roofColor;
+                ctx.beginPath();
+                ctx.moveTo(building.x, building.y);
+                ctx.lineTo(building.x + building.width / 2, building.y - 30);
+                ctx.lineTo(building.x + building.width, building.y);
+                ctx.fill();
+
+                if (isForeground) {
+                    ctx.fillStyle = "yellow";
+                    ctx.fillRect(building.x + 5, building.y + 10, 10, 10);
+                    ctx.fillRect(building.x + building.width - 15, building.y + 10, 10, 10);
+
+                    ctx.fillStyle = "black";
+                    ctx.fillRect(building.x + building.width / 3, building.y + building.height - 20, building.width / 3, 20);
+                }
+            }
+        }
+
+        function drawVillage() {
+            drawBuildings(backgroundBuildings, "#5a3e2b", "#3e2a1c", false);
+            drawBuildings(foregroundBuildings, "brown", "gray", true);
+        }
+
+        // **People**
+        function drawPeople() {
+            ctx.strokeStyle = "white";
+            for (let i = 0; i < 5; i++) {
+                let x = Math.random() * canvas.width;
+                let y = 320;
+
+                ctx.beginPath();
+                ctx.arc(x, y - 10, 5, 0, Math.PI * 2);
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, y + 15);
+                ctx.moveTo(x, y + 5);
+                ctx.lineTo(x - 5, y + 10);
+                ctx.moveTo(x, y + 5);
+                ctx.lineTo(x + 5, y + 10);
+                ctx.stroke();
+            }
+        }
+
+        // **Boy Animation**
+        const images = [];
+        const totalFrames = 9;
+        let imagesLoaded = 0;
+        let boyX = canvas.width / 2 - 25;
+        let boyY = 280;
+        let boyFrame = 0;
+
+        for (let i = 1; i <= totalFrames; i++) {
+            let img = new Image();
+            0
+            img.src = `skeleton-01_run_01start_0${i}.png`; 
+            img.onload = () => {
+                imagesLoaded++;
+            };
+            img.onerror = () => console.error(`Failed to load image: skeleton-00_idle_0${i}.png`);
+            images.push(img);
+        }
+
+        function drawBoy() {
+            if (imagesLoaded < totalFrames) return;
+            let img = images[boyFrame]; 
+            ctx.drawImage(img, boyX, boyY, 50, 50); 
+            boyFrame = (boyFrame + 1) % totalFrames;
+        }
+
+        // **Animation Loop**
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawSky();
+            drawBackground();
+            drawMoon();
+            drawVillage();
+            drawRain();
+           //drawPeople();
+            drawBoy();
+            frame++;
+            requestAnimationFrame(animate);
+        }
+
+        createRain(50);
+        animate();
+    </script>
+</body>
+</html>
